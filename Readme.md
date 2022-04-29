@@ -1,7 +1,10 @@
 # Readme
 dehashed query project for a given domain
 
+```
 usage: ./e-mail.py --domain=<your domain>
+```
+
 
 # Requirements
 * you must have an account on dehashed
