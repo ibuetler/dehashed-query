@@ -20,6 +20,7 @@ API_EMAIL = '<removed>'
 API_TOKEN = '<removed>'
 
 
+
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(prog='e-mail.py')
@@ -31,7 +32,15 @@ if __name__ == '__main__':
 
     # GET CONTACTS
     results = []
-    r = requests.get(API_URL + DOMAIN, auth=(API_EMAIL, API_TOKEN), headers={'accept': 'application/json'})
+    try:
+        r = requests.get(API_URL + DOMAIN, auth=(API_EMAIL, API_TOKEN), headers={'accept': 'application/json'})
+        r.raise_for_status()
+    except requests.exceptions.HTTPError as e:
+        print("ERROR")
+        print(e, file=sys.stderr)
+    except requests.exceptions.RequestException as e:
+        print(e, file=sys.stderr)
+
     print(API_URL + DOMAIN)
     contacts = r.json()
     print(contacts)
@@ -39,14 +48,22 @@ if __name__ == '__main__':
     ## Loop through CONTACTS
     if contacts['entries'] is not None:
         for contact in contacts['entries']:
-            r = requests.get(API_URL + contact['email'], auth=(API_EMAIL, API_TOKEN), headers={'accept': 'application/json'})
-            print(API_URL + contact['email'])
-            secret = r.json()
-            if secret['entries'] is not None:
-                for result in secret['entries']:
-                    results.append(result)
-            else:
-                print("nothing found for: " + contact['email'])
+            try:
+                r = requests.get(API_URL + contact['email'], auth=(API_EMAIL, API_TOKEN), headers={'accept': 'application/json'})
+                r.raise_for_status()
+                print(API_URL + contact['email'])
+                secret = r.json()
+                if secret['entries'] is not None:
+                    for result in secret['entries']:
+                        results.append(result)
+                else:
+                    print("nothing found for: " + contact['email'])
+            except requests.exceptions.HTTPError as e:
+                print("ERROR")
+                print(e, file=sys.stderr)
+            except requests.exceptions.RequestException as e:
+                print(e, file=sys.stderr)
+
 
     table = pd.DataFrame.from_dict(results)
     table.to_csv('result.csv', index=False, header=True)
